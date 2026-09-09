@@ -95,3 +95,29 @@
 確認項目:
 1. デプロイ履歴で対象ブランチ名とコミットIDが一致
 2. ロールバック手順（直前コミット再デプロイ）を事前に確認
+
+## 9. `workers.dev` で404が出るときの切り分け
+
+1. `wrangler.toml` の `name` がアクセスURLの先頭名と一致しているか確認
+2. `wrangler deploy` 実行時に表示された公開URLを控え、手入力URLと一致するか確認
+3. `wrangler whoami` でログイン中アカウントを確認（別アカウントへ誤デプロイしていないか）
+4. `/` と `/api` にアクセスし、Worker自体が応答するか確認
+5. Pagesから呼んでいる場合は、ベースURLが旧Worker URLのままになっていないか確認
+
+確認コマンド例:
+
+```powershell
+Set-Location .\worker
+wrangler whoami
+wrangler deploy
+```
+
+期待結果:
+1. `https://<worker-name>.<subdomain>.workers.dev` が deploy 出力に表示される
+2. `https://<worker-name>.<subdomain>.workers.dev/api/course` がJSONを返す
+3. 404のままなら、別アカウント/別サブドメインへのデプロイを疑う
+
+補足（今回の症状に近いケース）:
+1. トップページは表示されるのに `/api/course` だけ404になる場合、API実装を含むWorkerが反映されていない可能性が高い
+2. 静的ページ用のデプロイ内容だけが有効で、`worker/src/index.js` のルーティングが本番に載っていない可能性がある
+3. `worker` ディレクトリで再度 `wrangler deploy` を実行し、表示された公開URLに対して `/api` と `/api/course` を確認する
