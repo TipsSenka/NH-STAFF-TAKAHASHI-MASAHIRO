@@ -121,3 +121,26 @@ wrangler deploy
 1. トップページは表示されるのに `/api/course` だけ404になる場合、API実装を含むWorkerが反映されていない可能性が高い
 2. 静的ページ用のデプロイ内容だけが有効で、`worker/src/index.js` のルーティングが本番に載っていない可能性がある
 3. `worker` ディレクトリで再度 `wrangler deploy` を実行し、表示された公開URLに対して `/api` と `/api/course` を確認する
+
+## 10. Git連携デプロイで「最新ビルド失敗」が出るとき
+
+症状:
+1. Cloudflareダッシュボード上部に「最新のビルドに失敗しました」が表示される
+2. 既存のWorker URLは開けるが、期待したAPI更新が反映されない
+
+確認手順:
+1. デプロイ履歴を開き、失敗したデプロイのログを確認
+2. Build configuration の値を確認
+3. ルートディレクトリが `/worker` になっているか確認
+4. デプロイコマンドが `npx wrangler deploy` になっているか確認
+5. production branch が反映したいブランチ（例: main）か確認
+
+修正後の再実行:
+1. 設定を保存
+2. Retry deployment または 新しいデプロイ を実行
+3. 成功後に `/api` と `/api/course` を再確認
+
+補足:
+1. Git連携で失敗が続く場合は、ローカルの `worker` ディレクトリから `wrangler deploy` を先に成功させると切り分けしやすい
+2. ローカルで成功するのにGit連携で失敗する場合、Cloudflare側Build configurationの不一致を優先確認する
+3. ログに "Can't set compatibility date in the future" が出る場合は、`worker/wrangler.toml` の `compatibility_date` を当日以前（UTC基準）へ変更して再デプロイする
